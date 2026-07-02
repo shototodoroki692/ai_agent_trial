@@ -6,6 +6,8 @@ services:
 
     ports:
       - "11434:11434"
+    env_file:
+      - .env
 
     volumes:
       - ollama:/root/.ollama # Conserve les modèles sur la machine hôte.

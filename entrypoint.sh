@@ -7,9 +7,8 @@
 # Démarrer ollama en arrière-plan.
 ollama serve &
 
-# Attendre que l'API Ollama que nous instancions soit prêt avant de continuer
-# l'exécution de ce script.
-until curl -s http://localhost:11434/api/tags >dev/null; do 
+# Attendre que Ollama soit lancé avant de continuer l'exécution de ce script.
+until ollama list >/dev/null 2>&1; do 
    sleep 1
 done
 
