@@ -1,0 +1,25 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: unless-stopped
+
+    ports:
+      - "11434:11434"
+
+    volumes:
+      - ollama:/root/.ollama # Conserve les modèles sur la machine hôte.
+      # Montage du fichier /entrypoint.sh dans notre container.
+      #
+      # NOTE:
+      # Il ne s'agit pas de copier le fichier dans le container, mais de 
+      # permettre la lecture de notre fichier local depuis notre container.
+      - ./entrypoint.sh:/entrypoint.sh 
+    # Lancer un interprêteur bash et exécuter notre script /entrypoint.sh lors
+    # de l'exécution du container.
+    # Ce script permet de charger le modèle d'IA qui sera utilsé via Ollama par
+    # notre application, dans notre container si celui-ci n'y figure pas déjà.
+    entrypoint: ["/bin/bash", "/entrypoint.sh"]
+
+volumes:
+  ollama:
