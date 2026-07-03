@@ -3,7 +3,11 @@
 
 import os
 from models import WebSearchQueryGenerationOutput
-from prompts import WEB_SEARCH_PROMPT_TEMPLATE
+from prompts import (
+   WEB_SEARCH_PROMPT_TEMPLATE,
+   WEB_PAGE_CONTENT_SUMMARY_PROMPT_TEMPLATE,
+   RESEARCH_REPORT_PROMPT_TEMPLATE
+)
 from web_searching import web_search
 from web_scraping import web_scrape
 from langchain_ollama import ChatOllama
@@ -17,7 +21,7 @@ model_name = os.getenv("LLM_MODEL")
 
 print(f"Modèle utilisé: {model_name}")
 
-llm = ChatOllama(
+base_llm = ChatOllama(
    model=model_name,
    temperature=0,
 )
@@ -45,7 +49,7 @@ while True:
       user_question=user_input
    )
 
-   llm = llm.with_structured_output(
+   llm = base_llm.with_structured_output(
       schema=WebSearchQueryGenerationOutput,
       strict=True,
       include_raw=True # Permet d'obtenir des détails liés à l'invocation du modèle.
@@ -60,15 +64,70 @@ while True:
    for i, query in enumerate(web_queries_list):
       print(f"{i+1}: {query}")
 
+   # Liste des pages web à consulter, rattachées à la recherche associée.
+   web_pages = []
+
    # Pour chaque requête formulée, effectuer la recherche sur le web.
    for i, query in enumerate(web_queries_list):
       urls = web_search(query, RESULT_BY_QUERY_NUMBER)
 
-      print(f"\nURLs à consulter pour la recherche n°{i+1}:")
+      # print(f"\nURLs à consulter pour la recherche n°{i+1}:")
       for y, url in enumerate(urls):
-         print(f"\t{y+1}: {url}")
+
+         # Ajouter l'url et la recherche associée à la liste des pages web
+         # à consulter.
+         web_pages.append({
+            "search_query": query,
+            "url": url
+         })
 
          # Récupérer le contenu de la page web rattachée à l'URL:
-         page_content = web_scrape(url)
+         # page_content = web_scrape(url)
+
+   # Pour chaque URL de notre liste, y ajouter le contenu de la page.
+   # print("\nContenu utilisé pour répondre à la question:\n\n")
+   for i, page in enumerate(web_pages):
+      page["content"] = web_scrape(page["url"])
+
+      # # débug:
+      # print(f"...........PAGE WEB N°{i+1}...........\n")
+      # print(f"Recherche: {page["search_query"]}\n\nURL: {page["url"]}\n\nContenu de la page:\n{page["content"]}\n\n\n")
+
+   # Résumer le contenu de chaque page web consulter et l'ajouter à la liste des
+   # résumés.
+   for i, page in enumerate(web_pages):
+      prompt = WEB_PAGE_CONTENT_SUMMARY_PROMPT_TEMPLATE.format(
+         web_page_content=page["content"],
+         search_query=page["search_query"]
+      )
+
+      llm_response = base_llm.invoke(prompt)
+
+      # # débug:
+      # print(f"Résumé n°{i+1}:\n{llm_response.content}")
+
+      page["content_summary"] = llm_response.content
+
+   # Stringifier la liste des résumés.
+   stringified_summaries = [
+      f'URL: {page["url"]}\nRésumé: {page["content_summary"]}' for page in web_pages
+   ]
+
+   # Définir la liste des résumés comme étant une seule chaîne de caractères.
+   appended_stringified_summaries = '\n'.join(stringified_summaries)
+
+   # débug:
+   print(f"Pages web résumées:\n{appended_stringified_summaries}")
+
+   prompt = RESEARCH_REPORT_PROMPT_TEMPLATE.format(
+      research_summary=appended_stringified_summaries,
+      user_question=user_input
+   )
+
+   # Envoi de la liste des résumés au LLM pour obtenir la réponse finale à
+   # la question de l'utilisateur.
+   final_response = base_llm.invoke(prompt)
+
+   print(f"Réponse à votre question:\n", final_response.content)
 
 print("C'est la fin du programme :)")
