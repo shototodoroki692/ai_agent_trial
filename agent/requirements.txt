@@ -1,2 +1,9 @@
-langchain_ollama
 dotenv
+listing
+typing
+pydantic
+langchain_ollama
+langchain_community
+langchain_core
+ddgs # Pour utiliser le wrapper DuckduckGo fournit par langchain.
+bs4 # Bibliothèque beautisfulSoup pour le web scraping.
