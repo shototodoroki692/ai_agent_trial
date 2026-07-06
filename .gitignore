@@ -1,1 +1,3 @@
-.env*
+# Les variables d'environnement peuvent pour le moment figurer dans notre
+# dépôt git.
+# .env*
