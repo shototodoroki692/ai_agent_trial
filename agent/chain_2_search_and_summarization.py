@@ -3,6 +3,7 @@ from prompts import WEB_PAGE_CONTENT_SUMMARY_PROMPT_TEMPLATE
 from web_scraping import web_scrape
 from web_searching import web_search
 from langchain_core.runnables import RunnableLambda, RunnableParallel
+from langchain_core.output_parsers import StrOutputParser
 
 # Nombre de résultats de recherche à garder par recherche.
 RESULT_BY_QUERY_NUMBER=3
@@ -40,7 +41,7 @@ scrape_url_and_summarization_chain = (
    | RunnableParallel(
       {
          'search_query': lambda x: x['search_query'],
-         'summary': RunnableLambda(lambda x: "random summary for testing. To replace")# WEB_PAGE_CONTENT_SUMMARY_PROMPT_TEMPLATE | get_llm(),
+         'summary': WEB_PAGE_CONTENT_SUMMARY_PROMPT_TEMPLATE | get_llm() | StrOutputParser(),
       }
    )
 )
@@ -62,6 +63,6 @@ search_and_summarization_chain = (
    )
 )
 
-# Test.
-result = search_and_summarization_chain.invoke("Désiré Doué")
-print(f"Résumé des recherches sur le GOAT:\n\n{result}")
+# # Test.
+# result = search_and_summarization_chain.invoke("Désiré Doué")
+# print(f"Résumé des recherches sur le GOAT:\n\n{result}")

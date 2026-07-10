@@ -1,15 +1,7 @@
-import json
 import os
-from models import WebSearchQueryGenerationOutput
-from prompts import (
-   WEB_SEARCH_PROMPT_TEMPLATE,
-   WEB_PAGE_CONTENT_SUMMARY_PROMPT_TEMPLATE,
-   RESEARCH_REPORT_PROMPT_TEMPLATE
-)
-from web_searching import web_search
-from web_scraping import web_scrape
-from chain_web_search import web_search_chain
-from chain_search_and_summarization import get_urls_chain
+from chain_1_web_search import web_search_chain
+from chain_2_search_and_summarization import search_and_summarization_chain
+from chain_3_question_answering import question_answering_chain
 from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 
@@ -37,14 +29,24 @@ while True:
    if user_input == "quit":
       break
 
-   # Chaîne de test.
+   # Chargement de l'entrée de l'utilisateur dans une variable d'environnement.
+   #
+   # Pourquoi faire cela ? 
+   # Car j'ai la flemme de modifier toutes mes chaînes pour y faire passer
+   # la question de l'utilisateur LOOOL !
+   os.environ["USER_QUESTION"] = user_input
+   print(f"USER_QUESTION: {os.getenv('USER_QUESTION')}")
+
+   # Chaîne principale pour répondre à la question de l'utilisateur en 
+   # effectuant des recherches sur le web.
    chain = (
-      web_search_chain
-      | get_urls_chain.map() # La méthode map() appelle la chaîne pour chaque élément de la liste d'entrée.
+      web_search_chain 
+      | search_and_summarization_chain.map() # Appeler cette chaîne pour chaque élément renvoyé par la chaîne précédente.
+      | question_answering_chain
    )
 
-   results = chain.invoke(chain)
-   print(f"liens pour les recherches:\n{results}")
+   results = chain.invoke(user_input)
+   print(f"Réponse:\n{results}")
 
    # # Chaîne renvoyant une liste de recherches à effectuer sur le web selon une
    # # question posée par l'utilisateur.

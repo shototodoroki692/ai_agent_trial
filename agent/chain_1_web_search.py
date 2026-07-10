@@ -14,6 +14,10 @@ llm = llm.with_structured_output(
    strict=True
 )
 
+# web_search_chain permet de récupérer une liste de recherches à effectuer
+# sur le web pour obtenir des informations quant à la question fournie en
+# entrée.
+#
 # Input: Question utilisateur.
 # Output: Liste de recherches à effectuer sur le web.
 web_search_chain = (
@@ -28,6 +32,6 @@ web_search_chain = (
    | RunnableLambda(lambda output: output.list) # Renvoyer directement le contenu de la liste.
 )
 
-# Test:
-search_queries = web_search_chain.invoke("Qui est Désiré Doué ?")
-print(f"Résultat de la chaîne:\n{search_queries}")
+# # Test:
+# search_queries = web_search_chain.invoke("Qui est Désiré Doué ?")
+# print(f"Résultat de la chaîne:\n{search_queries}")
