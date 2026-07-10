@@ -15,7 +15,7 @@ llm = llm.with_structured_output(
 )
 
 # Input: Question utilisateur.
-# Output: Liste des URLs des pages web à consulter.
+# Output: Liste de recherches à effectuer sur le web.
 web_search_chain = (
    RunnableLambda(lambda user_input:
       {
